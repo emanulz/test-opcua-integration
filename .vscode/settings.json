@@ -1,0 +1,13 @@
+{
+  "cSpell.words": [
+    "nevro",
+    "opcua",
+  ],
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "files.insertFinalNewline": true,
+  "typescript.tsdk": "node_modules/typescript/lib"
+}
