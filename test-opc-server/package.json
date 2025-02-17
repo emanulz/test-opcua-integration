@@ -1,0 +1,20 @@
+{
+  "name": "test-opc-server",
+  "version": "1.0.0",
+  "description": "A local OPC UA server for testing",
+  "main": "dist/testServer.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/testServer.js",
+    "dev": "ts-node-dev --respawn --transpile-only testServer.ts"
+  },
+  "dependencies": {
+    "node-opcua": "^2.74.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "typescript": "^5.7.3",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0"
+  }
+}
