@@ -4,13 +4,15 @@
  */
 
 import { ProcessStateMachine } from './application/ProcessStateMachine';
-import { ApiService } from './repositories/ApiService';
-import { AuthService } from './repositories/AuthService';
+import { ApiService } from './services/ApiService';
+import { AuthService } from './services/AuthService';
 import { OpcServerService } from './services/OpcServerService';
+import { TokenRepository } from './repositories/TokenRepository';
 
 async function main() {
   // Create AuthService, then use it in ApiService
-  const authService = new AuthService();
+  const tokenRepository = new TokenRepository('./tokens.db');
+  const authService = new AuthService(tokenRepository);
   const apiService = new ApiService(authService);
 
   // Create the OPC server service

@@ -6,9 +6,12 @@
 import { z } from 'zod';
 
 export const itemResponseSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  // Add additional fields as needed
+  guid: z.string(),
+  assemblyType: z.string(),
+  lifecyclePhase: z.object({
+    guid: z.string(),
+    name: z.string(),
+  }),
 });
 
 export type ItemResponse = z.infer<typeof itemResponseSchema>;

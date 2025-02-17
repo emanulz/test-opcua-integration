@@ -47,7 +47,7 @@ export class ProcessStateMachine {
 
         // 3. Write the result to the RESULT_NODE_ID
         // For demonstration, let's say we write the `name` field
-        await this.opcServer.writeValue(envConfig.RESULT_NODE_ID, itemData.name);
+        await this.opcServer.writeValue(envConfig.RESULT_NODE_ID, itemData.lifecyclePhase.name);
 
         // 4. Update the state node to "DONE"
         await this.opcServer.writeValue(envConfig.STATE_NODE_ID, 'DONE');

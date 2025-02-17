@@ -39,9 +39,11 @@ export class ApiService implements IApiService {
 
     const response = await axios.get(`${envConfig.API_BASE_URL}/items/${itemId}`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        arena_session_id: token,
       },
     });
+
+    console.log('Item response:', response.data);
 
     // Validate response data with Zod
     const parsed = itemResponseSchema.parse(response.data);
