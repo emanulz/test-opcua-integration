@@ -1,47 +1,38 @@
 /**
  * @file index.ts
- * @module index
- *
- * @remarks
- * Application entry point. Initializes the OPC UA and API adapters, sets up the process use case,
- * and starts listening for OPC UA events.
+ * @description Application entry point.
  */
-import 'dotenv/config';
-import { DefaultApiAdapter } from './adapters/api/DefaultApiAdapter';
-import { GenericOpcuaAdapter } from './adapters/plc/GenericOpcuaAdapter';
-import { ProcessBarcodeUseCase } from './application/ProcessBarcodeUseCase';
 
-/**
- * Main function to bootstrap the application.
- */
-async function main(): Promise<void> {
-  // Retrieve the external API base URL from the environment variables
-  const apiBaseUrl = process.env.API_BASE_URL;
+import { ProcessStateMachine } from './application/ProcessStateMachine';
+import { ApiService } from './repositories/ApiService';
+import { AuthService } from './repositories/AuthService';
+import { OpcServerService } from './services/OpcServerService';
 
-  if (!apiBaseUrl) {
-    console.error('API_BASE_URL environment variable is not set.');
-    process.exit(1);
-  }
+async function main() {
+  // Create AuthService, then use it in ApiService
+  const authService = new AuthService();
+  const apiService = new ApiService(authService);
 
-  const opcuaAdapter = new GenericOpcuaAdapter();
-  const apiAdapter = new DefaultApiAdapter(apiBaseUrl);
-  const processBarcodeUseCase = new ProcessBarcodeUseCase(opcuaAdapter, apiAdapter);
+  // Create the OPC server service
+  const opcServerService = new OpcServerService();
 
+  // Create the use case
+  const processSM = new ProcessStateMachine(opcServerService, apiService);
+
+  // Initialize
   try {
-    await processBarcodeUseCase.initialize();
-    console.log('Process initialized. Listening for OPC UA events...');
-  } catch (error) {
-    console.error('Failed to initialize process:', error);
+    await processSM.initialize();
+    console.log('State machine process initialized. Waiting for state changes...');
+  } catch (err) {
+    console.error('Failed to initialize the process state machine:', err);
     process.exit(1);
   }
 }
 
-// Start the application.
 main();
 
-// Optional: Handle graceful shutdown.
+// Graceful shutdown
 process.on('SIGINT', async () => {
-  console.log('Shutting down application...');
-  // Insert any cleanup logic if needed (e.g., closing OPC UA session)
+  console.log('Shutting down...');
   process.exit(0);
 });

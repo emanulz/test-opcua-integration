@@ -27,13 +27,17 @@ yarn install
 Create a `.env` file in the root of the project and add the following variables and correct values:
 
 ```bash
-# OPC UA Server configuration
-OPCUA_ENDPOINT=''
-OPCUA_EVENT_NODE_ID=''
-OPCUA_RESPONSE_NODE_ID=''
+# OPC server environment variables
+OPC_ENDPOINT=''
+STATE_NODE_ID=''
+ITEM_ID_NODE_ID=''
+RESULT_NODE_ID=''
 
-# External API base URL
+# API environment variables
 API_BASE_URL=''
+API_USER=''
+API_PASSWORD=''
+API_WORKSPACE_ID=''
 ```
 
 ### Run the project for local development
