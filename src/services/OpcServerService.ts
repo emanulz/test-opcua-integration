@@ -84,10 +84,10 @@ export class OpcServerService implements IOpcServerService {
       value: { value: { dataType: 'String', value: String(value) } },
     });
 
-    if (writeResult.statusCode && writeResult.statusCode.equals(StatusCodes.Good)) {
+    if (writeResult && writeResult._name == StatusCodes.Good) {
       console.log(`Wrote "${value}" to node ${nodeId} successfully.`);
     } else {
-      console.error(`Failed to write "${value}" to node ${nodeId}:`, writeResult.statusCode.toString());
+      console.error(`Failed to write "${value}" to node ${nodeId}:`, writeResult._name.toString());
     }
   }
 
