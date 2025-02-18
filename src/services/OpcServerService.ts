@@ -9,15 +9,17 @@ import {
   ClientSubscription,
   DataValue,
   OPCUAClient,
+  StatusCode,
   StatusCodes,
   TimestampsToReturn,
+  ClientSession,
 } from 'node-opcua';
 import { envConfig } from '../configs/envConfig';
 import { IOpcServerService } from '../interfaces/IOpcServerService';
 
 export class OpcServerService implements IOpcServerService {
   private client = OPCUAClient.create({ endpoint_must_exist: false });
-  private session: any = null;
+  private session: ClientSession | null = null;
   private subscription: ClientSubscription | null = null;
   private reconnectDelay = 5000;
   private isConnected = false;
@@ -78,16 +80,16 @@ export class OpcServerService implements IOpcServerService {
     }
 
     // We'll guess at the data type. If your node expects something else, adjust accordingly.
-    const writeResult = await this.session.write({
+    const writeResult: StatusCode = await this.session.write({
       nodeId,
       attributeId: AttributeIds.Value,
       value: { value: { dataType: 'String', value: String(value) } },
     });
 
-    if (writeResult && writeResult._name == StatusCodes.Good) {
+    if (writeResult.equals(StatusCodes.Good)) {
       console.log(`Wrote "${value}" to node ${nodeId} successfully.`);
     } else {
-      console.error(`Failed to write "${value}" to node ${nodeId}:`, writeResult._name.toString());
+      console.error(`Failed to write "${value}" to node ${nodeId}:`, writeResult.toString());
     }
   }
 
