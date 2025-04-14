@@ -5,6 +5,7 @@
 
 import axios, { AxiosError } from 'axios';
 import { envConfig } from '../configs/envConfig';
+import { ItemNotFoundError } from '../domain/errors/ItemNotFoundError';
 import { ItemResponse, itemResponseSchema } from '../domain/models/itemResponseSchema';
 import { IApiService } from '../interfaces/IApiService';
 import { IAuthService } from '../interfaces/IAuthService';
@@ -37,7 +38,7 @@ export class ApiService implements IApiService {
   private async fetchItem(itemId: string): Promise<ItemResponse> {
     const token = await this.authService.getToken();
 
-    const response = await axios.get(`${envConfig.API_BASE_URL}/items/${itemId}`, {
+    const response = await axios.get(`${envConfig.API_BASE_URL}/items/?number=${itemId}`, {
       headers: {
         arena_session_id: token,
       },
@@ -47,6 +48,9 @@ export class ApiService implements IApiService {
 
     // Validate response data with Zod
     const parsed = itemResponseSchema.parse(response.data);
-    return parsed;
+    if (parsed.results.length === 0) {
+      throw new ItemNotFoundError();
+    }
+    return parsed.results[0];
   }
 }

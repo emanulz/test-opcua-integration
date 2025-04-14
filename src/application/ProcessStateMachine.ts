@@ -4,6 +4,7 @@
  */
 
 import { envConfig } from '../configs/envConfig';
+import { ItemNotFoundError } from '../domain/errors/ItemNotFoundError';
 import { IApiService } from '../interfaces/IApiService';
 import { IOpcServerService } from '../interfaces/IOpcServerService';
 
@@ -58,8 +59,14 @@ export class ProcessStateMachine {
         await this.opcServer.writeValue(envConfig.STATE_NODE_ID, envConfig.DONE_STATE_VALUE);
       } catch (error) {
         console.error('Error in state machine process:', error);
-        // Set error code in the error node
-        await this.opcServer.writeValue(envConfig.ERROR_NODE_ID, envConfig.GENERAL_ERROR_CODE);
+
+        // Handle specific error types
+        if (error instanceof ItemNotFoundError) {
+          await this.opcServer.writeValue(envConfig.ERROR_NODE_ID, error.code);
+        } else {
+          await this.opcServer.writeValue(envConfig.ERROR_NODE_ID, envConfig.GENERAL_ERROR_CODE);
+        }
+
         // Set state to DONE even when there's an error
         await this.opcServer.writeValue(envConfig.STATE_NODE_ID, envConfig.DONE_STATE_VALUE);
       }

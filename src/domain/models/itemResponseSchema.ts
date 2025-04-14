@@ -5,13 +5,38 @@
 
 import { z } from 'zod';
 
-export const itemResponseSchema = z.object({
-  guid: z.string(),
-  assemblyType: z.string(),
-  lifecyclePhase: z.object({
-    guid: z.string(),
-    name: z.string(),
-  }),
+const urlSchema = z.object({
+  api: z.string(),
+  app: z.string(),
 });
 
-export type ItemResponse = z.infer<typeof itemResponseSchema>;
+const categorySchema = z.object({
+  guid: z.string(),
+  name: z.string(),
+});
+
+const lifecyclePhaseSchema = z.object({
+  guid: z.string(),
+  name: z.string(),
+});
+
+const itemSchema = z.object({
+  assemblyType: z.string(),
+  category: categorySchema,
+  creationDateTime: z.string(),
+  guid: z.string(),
+  inAssembly: z.boolean(),
+  lifecyclePhase: lifecyclePhaseSchema,
+  name: z.string(),
+  number: z.string(),
+  revisionNumber: z.string(),
+  revisionStatus: z.string(),
+  url: urlSchema,
+});
+
+export const itemResponseSchema = z.object({
+  count: z.number(),
+  results: z.array(itemSchema),
+});
+
+export type ItemResponse = z.infer<typeof itemSchema>;

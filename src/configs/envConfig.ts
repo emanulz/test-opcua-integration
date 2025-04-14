@@ -16,6 +16,7 @@ export const envConfig = {
   DONE_STATE_VALUE: process.env.DONE_STATE_VALUE || 'DONE',
   NO_ERROR_CODE: parseInt(process.env.NO_ERROR_CODE || '0', 10),
   GENERAL_ERROR_CODE: parseInt(process.env.GENERAL_ERROR_CODE || '9', 10),
+  ITEM_NOT_FOUND_ERROR_CODE: parseInt(process.env.ITEM_NOT_FOUND_ERROR_CODE || '1', 10),
 
   // API
   API_BASE_URL: process.env.API_BASE_URL || '',
