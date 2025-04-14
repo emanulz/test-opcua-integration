@@ -52,7 +52,12 @@ export class ProcessStateMachine {
         const itemData = await this.apiService.getItemById(itemId);
 
         // 3. Write the result to the RESULT_NODE_ID as an array
-        const resultArray = [itemData.lifecyclePhase.name, 'Test Value 1', 'Test Value 2', 'Test Value 3'];
+        const resultArray = [
+          itemData.lifecyclePhase.name,
+          itemData.number,
+          itemData.revisionNumber,
+          itemData.revisionStatus,
+        ];
         await this.opcServer.writeValue(envConfig.RESULT_NODE_ID, resultArray);
 
         // 4. Update the state node to DONE_STATE_VALUE
