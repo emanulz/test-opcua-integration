@@ -51,9 +51,9 @@ export class ProcessStateMachine {
         console.log('Fetching item from API, itemId:', itemId);
         const itemData = await this.apiService.getItemById(itemId);
 
-        // 3. Write the result to the RESULT_NODE_ID
-        // For demonstration, let's say we write the `name` field
-        await this.opcServer.writeValue(envConfig.RESULT_NODE_ID, itemData.lifecyclePhase.name);
+        // 3. Write the result to the RESULT_NODE_ID as an array
+        const resultArray = [itemData.lifecyclePhase.name, 'Test Value 1', 'Test Value 2', 'Test Value 3'];
+        await this.opcServer.writeValue(envConfig.RESULT_NODE_ID, resultArray);
 
         // 4. Update the state node to DONE_STATE_VALUE
         await this.opcServer.writeValue(envConfig.STATE_NODE_ID, envConfig.DONE_STATE_VALUE);

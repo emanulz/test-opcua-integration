@@ -6,13 +6,13 @@
 import {
   AttributeIds,
   ClientMonitoredItem,
+  ClientSession,
   ClientSubscription,
   DataValue,
   OPCUAClient,
   StatusCode,
   StatusCodes,
   TimestampsToReturn,
-  ClientSession,
 } from 'node-opcua';
 import { envConfig } from '../configs/envConfig';
 import { IOpcServerService } from '../interfaces/IOpcServerService';
@@ -79,7 +79,23 @@ export class OpcServerService implements IOpcServerService {
       throw new Error('OPC UA session not established.');
     }
 
-    // We'll guess at the data type. If your node expects something else, adjust accordingly.
+    // Handle array values
+    if (Array.isArray(value)) {
+      const writeResult: StatusCode = await this.session.write({
+        nodeId,
+        attributeId: AttributeIds.Value,
+        value: { value: { dataType: 'String', arrayType: 'Array', value } },
+      });
+
+      if (writeResult.equals(StatusCodes.Good)) {
+        console.log(`Wrote array to node ${nodeId} successfully.`);
+      } else {
+        console.error(`Failed to write array to node ${nodeId}:`, writeResult.toString());
+      }
+      return;
+    }
+
+    // Handle single values
     const writeResult: StatusCode = await this.session.write({
       nodeId,
       attributeId: AttributeIds.Value,
