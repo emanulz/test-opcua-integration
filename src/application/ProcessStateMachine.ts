@@ -33,10 +33,15 @@ export class ProcessStateMachine {
     console.log('State machine changed to:', newState);
     if (newState === envConfig.START_STATE_VALUE) {
       try {
+        // Reset error code to NO_ERROR_CODE when starting
+        await this.opcServer.writeValue(envConfig.ERROR_NODE_ID, envConfig.NO_ERROR_CODE);
+
         // 1. Read the itemId from the OPC server
         const itemIdValue = await this.opcServer.readValue(envConfig.ITEM_ID_NODE_ID);
         if (!itemIdValue) {
           console.error('No itemId found on OPC server.');
+          await this.opcServer.writeValue(envConfig.ERROR_NODE_ID, envConfig.GENERAL_ERROR_CODE);
+          await this.opcServer.writeValue(envConfig.STATE_NODE_ID, envConfig.DONE_STATE_VALUE);
           return;
         }
         const itemId = String(itemIdValue);
@@ -53,8 +58,10 @@ export class ProcessStateMachine {
         await this.opcServer.writeValue(envConfig.STATE_NODE_ID, envConfig.DONE_STATE_VALUE);
       } catch (error) {
         console.error('Error in state machine process:', error);
-        // Optionally set error state in the OPC server
-        await this.opcServer.writeValue(envConfig.STATE_NODE_ID, 'ERROR');
+        // Set error code in the error node
+        await this.opcServer.writeValue(envConfig.ERROR_NODE_ID, envConfig.GENERAL_ERROR_CODE);
+        // Set state to DONE even when there's an error
+        await this.opcServer.writeValue(envConfig.STATE_NODE_ID, envConfig.DONE_STATE_VALUE);
       }
     }
   }
