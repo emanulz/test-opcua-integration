@@ -11,6 +11,8 @@ export const envConfig = {
   STATE_NODE_ID: process.env.STATE_NODE_ID || '',
   ITEM_ID_NODE_ID: process.env.ITEM_ID_NODE_ID || '',
   RESULT_NODE_ID: process.env.RESULT_NODE_ID || '',
+  START_STATE_VALUE: process.env.START_STATE_VALUE || 'START',
+  DONE_STATE_VALUE: process.env.DONE_STATE_VALUE || 'DONE',
 
   // API
   API_BASE_URL: process.env.API_BASE_URL || '',

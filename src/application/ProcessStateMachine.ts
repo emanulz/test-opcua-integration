@@ -24,14 +24,14 @@ export class ProcessStateMachine {
 
   /**
    * Called whenever the state node changes.
-   * If the state is "START", we read the itemId, fetch from API, write to the result node,
-   * and then update the state to "DONE".
+   * If the state matches START_STATE_VALUE, we read the itemId, fetch from API, write to the result node,
+   * and then update the state to DONE_STATE_VALUE.
    *
    * @param newState - The new value of the state node.
    */
   private async handleStateChange(newState: string): Promise<void> {
     console.log('State machine changed to:', newState);
-    if (newState === 'START') {
+    if (newState === envConfig.START_STATE_VALUE) {
       try {
         // 1. Read the itemId from the OPC server
         const itemIdValue = await this.opcServer.readValue(envConfig.ITEM_ID_NODE_ID);
@@ -49,8 +49,8 @@ export class ProcessStateMachine {
         // For demonstration, let's say we write the `name` field
         await this.opcServer.writeValue(envConfig.RESULT_NODE_ID, itemData.lifecyclePhase.name);
 
-        // 4. Update the state node to "DONE"
-        await this.opcServer.writeValue(envConfig.STATE_NODE_ID, 'DONE');
+        // 4. Update the state node to DONE_STATE_VALUE
+        await this.opcServer.writeValue(envConfig.STATE_NODE_ID, envConfig.DONE_STATE_VALUE);
       } catch (error) {
         console.error('Error in state machine process:', error);
         // Optionally set error state in the OPC server
