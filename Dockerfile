@@ -10,7 +10,7 @@ RUN yarn install --frozen-lockfile
 COPY tsconfig.json ./
 COPY src ./src
 
-# Uncomment this line if you want to bake environment variables into the image (not recommended for production)
+# Copy environment file for the build stage
 COPY .env ./
 
 # Build the application
@@ -28,6 +28,9 @@ RUN yarn install --frozen-lockfile --production
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
+
+# Copy environment file to the production stage
+COPY .env ./
 
 # Create a directory for the SQLite database and logs
 RUN mkdir -p /app/data /app/logs

@@ -5,7 +5,7 @@ dist
 *.log
 logs
 data
-.env
+# .env  # Commenting out to allow .env to be copied
 .env.*
 *.md
 .github
