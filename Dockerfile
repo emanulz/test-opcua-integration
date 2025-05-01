@@ -10,6 +10,9 @@ RUN yarn install --frozen-lockfile
 COPY tsconfig.json ./
 COPY src ./src
 
+# Uncomment this line if you want to bake environment variables into the image (not recommended for production)
+# COPY .env ./
+
 # Build the application
 RUN yarn build
 

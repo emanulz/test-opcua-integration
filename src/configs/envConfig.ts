@@ -3,7 +3,7 @@
  * @description Loads environment variables and exports them for the application.
  */
 
-import 'dotenv/config';
+import './dotenv'; // Import our custom dotenv configuration
 
 export const envConfig = {
   // OPC server
