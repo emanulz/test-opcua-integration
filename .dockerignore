@@ -1,0 +1,14 @@
+node_modules
+dist
+.git
+.vscode
+*.log
+logs
+data
+.env
+.env.*
+*.md
+.github
+test
+test-opc-server
+*.db 

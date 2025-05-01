@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  opcua-integration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: opcua-integration
+    restart: unless-stopped
+    volumes:
+      # Mount data directory for persistent storage of the SQLite database
+      - ./data:/app/data
+      # Mount logs directory
+      - ./logs:/app/logs
+      # Mount .env file for configuration
+      - ./.env:/app/.env:ro
+    environment:
+      # Default environment variables can be overridden by .env file
+      NODE_ENV: production
