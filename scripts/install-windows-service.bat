@@ -56,7 +56,7 @@ echo ✅ Application files found - OK
 echo.
 
 :: Check if Node.js is installed
-node --version >nul 2>&1
+call node --version >nul 2>&1
 if %errorLevel% neq 0 (
     echo ❌ ERROR: Node.js is not installed or not in PATH!
     echo Please install Node.js from https://nodejs.org/
@@ -66,24 +66,50 @@ if %errorLevel% neq 0 (
 )
 
 echo ✅ Node.js found: 
-node --version
+call node --version
 echo.
 
 :: Step 1: Install PM2 packages
 echo Step 1: Installing PM2 packages...
 echo =====================================
-npm install -g pm2
+echo.
+
+echo Installing PM2 globally (this may take a few minutes)...
+call npm install -g pm2
 if %errorLevel% neq 0 (
     echo ❌ ERROR: Failed to install PM2
+    echo.
+    echo Trying with cache clean...
+    call npm cache clean --force
+    call npm install -g pm2
+    if %errorLevel% neq 0 (
+        echo ❌ ERROR: PM2 installation failed completely
+        pause
+        exit /b 1
+    )
+)
+
+echo Verifying PM2 installation...
+call pm2 --version >nul 2>&1
+if %errorLevel% neq 0 (
+    echo ❌ ERROR: PM2 installed but not accessible
     pause
     exit /b 1
 )
 
-npm install -g pm2-windows-service
+echo Installing pm2-windows-service...
+call npm install -g pm2-windows-service
 if %errorLevel% neq 0 (
     echo ❌ ERROR: Failed to install pm2-windows-service
-    pause
-    exit /b 1
+    echo.
+    echo Trying with cache clean...
+    call npm cache clean --force
+    call npm install -g pm2-windows-service
+    if %errorLevel% neq 0 (
+        echo ❌ ERROR: pm2-windows-service installation failed completely
+        pause
+        exit /b 1
+    )
 )
 
 echo ✅ PM2 packages installed successfully!
@@ -93,6 +119,7 @@ echo.
 echo Step 2: Building the application...
 echo ===================================
 
+echo Building application...
 call yarn build
 if %errorLevel% neq 0 (
     echo ❌ ERROR: Failed to build the application
@@ -134,7 +161,9 @@ echo.
 :: Step 5: Install PM2 as Windows Service
 echo Step 5: Installing PM2 as Windows Service...
 echo ============================================
-pm2-service-install
+
+echo Installing PM2 as Windows service...
+call pm2-service-install
 if %errorLevel% neq 0 (
     echo ❌ ERROR: Failed to install PM2 service
     pause
@@ -147,7 +176,7 @@ echo.
 :: Step 6: Verify service installation
 echo Step 6: Verifying service installation...
 echo ========================================
-sc query PM2 | findstr "STATE"
+call sc query PM2 | findstr "STATE"
 if %errorLevel% neq 0 (
     echo ⚠️  WARNING: Could not verify PM2 service status
 ) else (
@@ -158,7 +187,9 @@ echo.
 :: Step 7: Start the application
 echo Step 7: Starting the application...
 echo ==================================
-pm2 start ecosystem.config.js
+
+echo Starting application with PM2...
+call pm2 start ecosystem.config.js
 if %errorLevel% neq 0 (
     echo ❌ ERROR: Failed to start the application
     echo Check the logs with: pm2 logs
@@ -172,7 +203,9 @@ echo.
 :: Step 8: Save PM2 configuration
 echo Step 8: Saving PM2 configuration...
 echo ===================================
-pm2 save
+
+echo Saving PM2 configuration...
+call pm2 save
 if %errorLevel% neq 0 (
     echo ⚠️  WARNING: Failed to save PM2 configuration
 ) else (
