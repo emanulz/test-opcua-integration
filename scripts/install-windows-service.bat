@@ -197,20 +197,88 @@ if %errorLevel% neq 0 (
     exit /b 1
 )
 
+echo Verifying application is running...
+call pm2 list | findstr "online"
+if %errorLevel% neq 0 (
+    echo ❌ ERROR: Application started but not showing as online
+    echo Check the status with: pm2 list
+    pause
+    exit /b 1
+)
+
 echo ✅ Application started successfully!
 echo.
 
-:: Step 8: Save PM2 configuration
-echo Step 8: Saving PM2 configuration...
-echo ===================================
+:: Step 8: Save PM2 configuration for auto-start
+echo Step 8: Saving PM2 configuration for auto-start...
+echo =================================================
 
 echo Saving PM2 configuration...
 call pm2 save
 if %errorLevel% neq 0 (
-    echo ⚠️  WARNING: Failed to save PM2 configuration
-) else (
-    echo ✅ PM2 configuration saved successfully!
+    echo ❌ ERROR: Failed to save PM2 configuration
+    pause
+    exit /b 1
 )
+
+echo Verifying configuration was saved...
+if exist "%USERPROFILE%\.pm2\dump.pm2" (
+    echo ✅ PM2 configuration file found
+) else (
+    echo ⚠️  WARNING: PM2 configuration file not found in expected location
+)
+
+echo ✅ PM2 configuration saved successfully!
+echo.
+
+:: Step 9: Test configuration persistence
+echo Step 9: Testing configuration persistence...
+echo ===========================================
+
+echo Testing PM2 configuration reload...
+echo Stopping all PM2 processes...
+call pm2 kill
+if %errorLevel% neq 0 (
+    echo ⚠️  WARNING: Issue stopping PM2 processes
+)
+
+echo Waiting for PM2 to fully stop...
+timeout /t 3 >nul
+
+echo Resurrecting saved processes...
+call pm2 resurrect
+if %errorLevel% neq 0 (
+    echo ❌ ERROR: Failed to resurrect saved processes
+    echo This means auto-start after reboot may not work
+    pause
+    exit /b 1
+)
+
+echo Verifying application restarted from saved configuration...
+call pm2 list | findstr "online"
+if %errorLevel% neq 0 (
+    echo ❌ ERROR: Application did not restart from saved configuration
+    echo Auto-start after reboot may not work properly
+    pause
+    exit /b 1
+)
+
+echo ✅ Configuration persistence test passed!
+echo.
+
+:: Step 10: Final verification
+echo Step 10: Final verification...
+echo =============================
+
+echo Current PM2 application status:
+call pm2 list
+
+echo.
+echo PM2 service status:
+call sc query PM2 | findstr "STATE"
+
+echo.
+echo ✅ All verification checks completed!
 echo.
 
 :: Installation complete
@@ -220,17 +288,23 @@ echo ================================================================
 echo.
 echo Your OPC UA Integration application is now running as a Windows service.
 echo.
+echo ✅ Service installed: PM2 Windows Service
+echo ✅ Application running: opcua-integration  
+echo ✅ Auto-start configured: Will start with Windows
+echo ✅ Configuration tested: Persistence verified
+echo.
 echo Quick commands:
 echo   - View status:     pm2 list
 echo   - View logs:       pm2 logs opcua-integration
 echo   - Restart app:     pm2 restart opcua-integration
 echo   - Stop app:        pm2 stop opcua-integration
 echo.
-echo The service will automatically start when Windows boots.
+echo 🔄 To test auto-start: Restart your computer and run "pm2 list"
+echo    Your application should automatically appear as "online"
 echo.
-echo To test auto-start, restart your computer and run: pm2 list
+echo For daily management, run: scripts\windows-service-manager.bat
 echo.
-echo For more commands, see WINDOWS_SERVICE_SETUP.md
-echo or run scripts\windows-service-manager.bat (can be run from anywhere)
+echo ⚠️  IMPORTANT: If you restart your computer and the app doesn't auto-start,
+echo    run this installer again or check WINDOWS_SERVICE_SETUP.md for troubleshooting.
 echo.
 pause 
