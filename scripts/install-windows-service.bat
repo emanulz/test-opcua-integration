@@ -69,50 +69,78 @@ echo ✅ Node.js found:
 call node --version
 echo.
 
-:: Step 1: Install PM2 packages
-echo Step 1: Installing PM2 packages...
-echo =====================================
+:: Step 1: Check and install PM2 packages if needed
+echo Step 1: Checking PM2 installation...
+echo ====================================
 echo.
 
-echo Installing PM2 globally (this may take a few minutes)...
-call npm install -g pm2
-if %errorLevel% neq 0 (
-    echo ❌ ERROR: Failed to install PM2
+:: Check if PM2 is already installed
+call pm2 --version >nul 2>&1
+if %errorLevel% equ 0 (
+    echo ✅ PM2 already installed:
+    call pm2 --version
+    set PM2_INSTALLED=1
+) else (
+    echo PM2 not found, installing...
+    set PM2_INSTALLED=0
+)
+
+:: Check if pm2-windows-service is available
+call pm2-service-install --help >nul 2>&1
+if %errorLevel% equ 0 (
+    echo ✅ pm2-windows-service already installed
+    set PM2_SERVICE_INSTALLED=1
+) else (
+    echo pm2-windows-service not found, will install...
+    set PM2_SERVICE_INSTALLED=0
+)
+
+:: Install PM2 if needed
+if %PM2_INSTALLED% equ 0 (
     echo.
-    echo Trying with cache clean...
-    call npm cache clean --force
+    echo Installing PM2 globally (this may take a few minutes)...
     call npm install -g pm2
     if %errorLevel% neq 0 (
-        echo ❌ ERROR: PM2 installation failed completely
-        pause
-        exit /b 1
+        echo ❌ ERROR: Failed to install PM2
+        echo.
+        echo Trying with cache clean...
+        call npm cache clean --force
+        call npm install -g pm2
+        if %errorLevel% neq 0 (
+            echo ❌ ERROR: PM2 installation failed completely
+            pause
+            exit /b 1
+        )
     )
+    echo ✅ PM2 installed successfully!
+) else (
+    echo 🔄 Skipping PM2 installation (already installed)
 )
 
-echo Verifying PM2 installation...
-call pm2 --version >nul 2>&1
-if %errorLevel% neq 0 (
-    echo ❌ ERROR: PM2 installed but not accessible
-    pause
-    exit /b 1
-)
-
-echo Installing pm2-windows-service...
-call npm install -g pm2-windows-service
-if %errorLevel% neq 0 (
-    echo ❌ ERROR: Failed to install pm2-windows-service
+:: Install pm2-windows-service if needed
+if %PM2_SERVICE_INSTALLED% equ 0 (
     echo.
-    echo Trying with cache clean...
-    call npm cache clean --force
+    echo Installing pm2-windows-service...
     call npm install -g pm2-windows-service
     if %errorLevel% neq 0 (
-        echo ❌ ERROR: pm2-windows-service installation failed completely
-        pause
-        exit /b 1
+        echo ❌ ERROR: Failed to install pm2-windows-service
+        echo.
+        echo Trying with cache clean...
+        call npm cache clean --force
+        call npm install -g pm2-windows-service
+        if %errorLevel% neq 0 (
+            echo ❌ ERROR: pm2-windows-service installation failed completely
+            pause
+            exit /b 1
+        )
     )
+    echo ✅ pm2-windows-service installed successfully!
+) else (
+    echo 🔄 Skipping pm2-windows-service installation (already installed)
 )
 
-echo ✅ PM2 packages installed successfully!
+echo.
+echo ✅ PM2 packages ready!
 echo.
 
 :: Step 2: Build the application
@@ -158,19 +186,40 @@ if not exist ".env" (
 )
 echo.
 
-:: Step 5: Install PM2 as Windows Service
-echo Step 5: Installing PM2 as Windows Service...
-echo ============================================
+:: Step 5: Check and install PM2 Windows Service if needed
+echo Step 5: Checking PM2 Windows Service...
+echo =======================================
 
-echo Installing PM2 as Windows service...
-call pm2-service-install
-if %errorLevel% neq 0 (
-    echo ❌ ERROR: Failed to install PM2 service
-    pause
-    exit /b 1
+:: Check if PM2 service is already installed
+call sc query PM2 >nul 2>&1
+if %errorLevel% equ 0 (
+    echo ✅ PM2 Windows Service already installed
+    call sc query PM2 | findstr "STATE"
+    
+    :: Check if service is running
+    call sc query PM2 | findstr "RUNNING" >nul
+    if %errorLevel% equ 0 (
+        echo ✅ PM2 service is running
+        set PM2_SERVICE_RUNNING=1
+    ) else (
+        echo ⚠️  PM2 service exists but not running, starting...
+        call sc start PM2
+        set PM2_SERVICE_RUNNING=1
+    )
+    set PM2_SERVICE_EXISTS=1
+) else (
+    echo PM2 Windows Service not found, installing...
+    call pm2-service-install
+    if %errorLevel% neq 0 (
+        echo ❌ ERROR: Failed to install PM2 service
+        pause
+        exit /b 1
+    )
+    echo ✅ PM2 service installed successfully!
+    set PM2_SERVICE_EXISTS=1
+    set PM2_SERVICE_RUNNING=1
 )
 
-echo ✅ PM2 service installed successfully!
 echo.
 
 :: Step 6: Verify service installation
@@ -184,17 +233,38 @@ if %errorLevel% neq 0 (
 )
 echo.
 
-:: Step 7: Start the application
-echo Step 7: Starting the application...
-echo ==================================
+:: Step 7: Check if application is already running
+echo Step 7: Checking application status...
+echo =====================================
 
-echo Starting application with PM2...
-call pm2 start ecosystem.config.js
-if %errorLevel% neq 0 (
-    echo ❌ ERROR: Failed to start the application
-    echo Check the logs with: pm2 logs
-    pause
-    exit /b 1
+:: Check if our application is already running in PM2
+call pm2 list | findstr "opcua-integration" >nul 2>&1
+if %errorLevel% equ 0 (
+    echo ✅ Application already exists in PM2
+    call pm2 list | findstr "opcua-integration"
+    
+    :: Check if it's online
+    call pm2 list | findstr "opcua-integration" | findstr "online" >nul
+    if %errorLevel% equ 0 (
+        echo ✅ Application is already running
+        echo 🔄 Restarting application to ensure latest build...
+        call pm2 restart opcua-integration
+        set APP_STARTED=1
+    ) else (
+        echo ⚠️  Application exists but not online, starting...
+        call pm2 start opcua-integration
+        set APP_STARTED=1
+    )
+) else (
+    echo Application not found in PM2, starting...
+    call pm2 start ecosystem.config.js
+    if %errorLevel% neq 0 (
+        echo ❌ ERROR: Failed to start the application
+        echo Check the logs with: pm2 logs
+        pause
+        exit /b 1
+    )
+    set APP_STARTED=1
 )
 
 echo Verifying application is running...
@@ -206,7 +276,7 @@ if %errorLevel% neq 0 (
     exit /b 1
 )
 
-echo ✅ Application started successfully!
+echo ✅ Application verified online!
 echo.
 
 :: Step 8: Save PM2 configuration for auto-start
