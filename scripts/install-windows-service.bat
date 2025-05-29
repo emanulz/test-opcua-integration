@@ -159,29 +159,12 @@ if not exist ".env" (
     echo Please create a .env file with your configuration before starting the service.
     echo You can use the example from the README.md file.
     echo.
-    echo Do you want to continue anyway?
-    echo   1 = Yes, continue without .env file
-    echo   2 = No, cancel installation
+    echo The installer will continue anyway, but the application may not work properly
+    echo without proper configuration.
     echo.
-    set /p choice="Enter your choice (1 or 2): "
-    echo You entered: [%choice%]
-    
-    if "%choice%"=="1" (
-        echo Continuing without .env file...
-        goto continue_install
-    )
-    if "%choice%"=="2" (
-        echo Installation cancelled by user.
-        pause
-        exit /b 1
-    )
-    
-    echo Invalid choice "%choice%", cancelling installation.
-    pause
-    exit /b 1
-    
-    :continue_install
-    echo Proceeding with installation...
+    echo Press any key to continue...
+    pause >nul
+    echo Continuing with installation...
 ) else (
     echo .env file found - OK
 )
