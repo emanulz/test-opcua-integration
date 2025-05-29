@@ -171,39 +171,76 @@ if not exist ".env" (
 echo.
 
 :: Step 5: Check and install PM2 Windows Service if needed
-echo Step 5: Checking PM2 Windows Service...
-echo =======================================
+echo Step 5: Setting up PM2 Windows Service...
+echo =========================================
 
-:: Check if PM2 service is already installed
+echo Checking for existing PM2 services and processes...
+
+:: Stop any running PM2 processes first
+echo Stopping any existing PM2 processes...
+call pm2 kill >nul 2>&1
+
+:: Check if PM2 service exists and remove it
 call sc query PM2 >nul 2>&1
 if %errorLevel% equ 0 (
-    echo ✅ PM2 Windows Service already installed
-    call sc query PM2 | findstr "STATE"
+    echo Found existing PM2 service, removing it...
     
-    :: Check if service is running
-    call sc query PM2 | findstr "RUNNING" >nul
-    if %errorLevel% equ 0 (
-        echo ✅ PM2 service is running
-        set PM2_SERVICE_RUNNING=1
-    ) else (
-        echo ⚠️  PM2 service exists but not running, starting...
-        call sc start PM2
-        set PM2_SERVICE_RUNNING=1
-    )
-    set PM2_SERVICE_EXISTS=1
+    :: Stop the service first
+    echo Stopping PM2 service...
+    call sc stop PM2 >nul 2>&1
+    
+    :: Wait a moment for service to stop
+    timeout /t 2 >nul
+    
+    :: Try to uninstall existing service
+    echo Uninstalling existing PM2 service...
+    call pm2-service-uninstall >nul 2>&1
+    
+    :: Wait for cleanup
+    timeout /t 2 >nul
+    
+    echo Existing PM2 service removed
 ) else (
-    echo PM2 Windows Service not found, installing...
-    call pm2-service-install
-    if %errorLevel% neq 0 (
-        echo ❌ ERROR: Failed to install PM2 service
-        pause
-        exit /b 1
-    )
-    echo ✅ PM2 service installed successfully!
-    set PM2_SERVICE_EXISTS=1
-    set PM2_SERVICE_RUNNING=1
+    echo No existing PM2 service found
 )
 
+:: Clean up any lingering PM2 processes
+echo Cleaning up PM2 processes...
+taskkill /f /im "PM2 Service.exe" >nul 2>&1
+taskkill /f /im pm2.exe >nul 2>&1
+
+:: Wait for cleanup to complete
+timeout /t 3 >nul
+
+:: Now install fresh PM2 service
+echo Installing fresh PM2 service...
+call pm2-service-install
+if %errorLevel% neq 0 (
+    echo ERROR: Failed to install PM2 service
+    echo This might be due to permissions or conflicting processes
+    echo.
+    echo Try running these commands manually:
+    echo   pm2 kill
+    echo   pm2-service-uninstall
+    echo   pm2-service-install
+    echo.
+    pause
+    exit /b 1
+)
+
+echo PM2 service installed successfully!
+
+:: Verify the service is running
+echo Verifying PM2 service status...
+timeout /t 2 >nul
+call sc query PM2 | findstr "RUNNING" >nul
+if %errorLevel% neq 0 (
+    echo Starting PM2 service...
+    call sc start PM2
+    timeout /t 3 >nul
+)
+
+echo PM2 Windows Service is ready!
 echo.
 
 :: Step 6: Verify service installation
