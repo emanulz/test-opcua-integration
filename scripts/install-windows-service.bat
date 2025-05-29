@@ -1,5 +1,5 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal
 
 :: OPC UA Integration - Windows Service Installer
 :: This script automates the complete installation process
@@ -183,7 +183,7 @@ if not exist ".env" (
     echo You can use the example from the README.md file.
     echo.
     set /p continue="Do you want to continue anyway? (y/n): "
-    if /i "!continue!" neq "y" (
+    if /i "%continue%" neq "y" (
         echo Installation cancelled.
         pause
         exit /b 1
