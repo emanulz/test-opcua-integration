@@ -197,7 +197,7 @@ if %errorLevel% equ 0 (
     call pm2-service-uninstall >nul 2>&1
     
     :: Wait for cleanup
-    timeout /t 2 >nul
+    timeout /t 3 >nul
     
     echo Existing PM2 service removed
 ) else (
@@ -210,37 +210,90 @@ taskkill /f /im "PM2 Service.exe" >nul 2>&1
 taskkill /f /im pm2.exe >nul 2>&1
 
 :: Wait for cleanup to complete
-timeout /t 3 >nul
+timeout /t 5 >nul
 
 :: Now install fresh PM2 service
 echo Installing fresh PM2 service...
 call pm2-service-install
-if %errorLevel% neq 0 (
-    echo ERROR: Failed to install PM2 service
-    echo This might be due to permissions or conflicting processes
-    echo.
-    echo Try running these commands manually:
-    echo   pm2 kill
-    echo   pm2-service-uninstall
-    echo   pm2-service-install
-    echo.
-    pause
-    exit /b 1
+set INSTALL_RESULT=%errorLevel%
+
+if %INSTALL_RESULT% neq 0 (
+    echo WARNING: PM2 service installation failed with error %INSTALL_RESULT%
+    echo Trying alternative installation method...
+    
+    :: Try alternative method
+    call pm2-service-install --user-name "LocalSystem" >nul 2>&1
+    set INSTALL_RESULT=%errorLevel%
 )
 
-echo PM2 service installed successfully!
+:: Wait for service registration
+timeout /t 3 >nul
 
-:: Verify the service is running
-echo Verifying PM2 service status...
-timeout /t 2 >nul
-call sc query PM2 | findstr "RUNNING" >nul
+:: Verify the service actually exists now
+echo Verifying PM2 service was created...
+call sc query PM2 >nul 2>&1
 if %errorLevel% neq 0 (
-    echo Starting PM2 service...
+    echo ERROR: PM2 service was not properly installed
+    echo.
+    echo This is likely due to:
+    echo   - Windows permissions issue
+    echo   - Antivirus blocking service creation
+    echo   - User account control restrictions
+    echo.
+    echo FALLBACK: Will run PM2 manually without service
+    echo The application will work but won't auto-start with Windows
+    echo.
+    set PM2_SERVICE_FAILED=1
+    goto manual_pm2_start
+) else (
+    echo PM2 service successfully created
+    set PM2_SERVICE_FAILED=0
+)
+
+:: Try to start the service
+echo Starting PM2 service...
+call sc start PM2
+if %errorLevel% neq 0 (
+    echo WARNING: Could not start PM2 service automatically
+    echo Trying manual start...
+    timeout /t 2 >nul
     call sc start PM2
-    timeout /t 3 >nul
 )
 
-echo PM2 Windows Service is ready!
+:: Final verification
+timeout /t 3 >nul
+call sc query PM2 | findstr "RUNNING" >nul
+if %errorLevel% equ 0 (
+    echo PM2 Windows Service is running successfully!
+    set PM2_SERVICE_RUNNING=1
+    goto pm2_service_ready
+) else (
+    echo WARNING: PM2 service exists but is not running
+    echo Will continue with manual PM2 startup
+    set PM2_SERVICE_RUNNING=0
+    goto manual_pm2_start
+)
+
+:manual_pm2_start
+echo.
+echo Starting PM2 manually (without Windows service)...
+call pm2 ping >nul 2>&1
+if %errorLevel% neq 0 (
+    echo Starting PM2 daemon...
+    call pm2 status >nul 2>&1
+)
+echo PM2 daemon is ready
+goto pm2_service_ready
+
+:pm2_service_ready
+echo.
+if %PM2_SERVICE_FAILED% equ 1 (
+    echo WARNING: PM2 Windows Service installation failed
+    echo Your application will run but won't auto-start with Windows
+    echo You can try running this installer as Administrator later
+) else (
+    echo PM2 Windows Service setup complete!
+)
 echo.
 
 :: Step 6: Verify service installation
