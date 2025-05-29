@@ -76,45 +76,44 @@ echo.
 
 :: Check if PM2 is already installed
 echo Checking for PM2...
+set PM2_INSTALLED=0
 call pm2 --version >nul 2>&1
 if %errorLevel% equ 0 (
     echo ✅ PM2 already installed
-    for /f "tokens=*" %%i in ('pm2 --version 2^>nul') do set PM2_VERSION=%%i
-    echo    Version: !PM2_VERSION!
+    for /f "tokens=*" %%i in ('pm2 --version 2^>nul') do echo    Version: %%i
     set PM2_INSTALLED=1
 ) else (
     echo PM2 not found, will install...
-    set PM2_INSTALLED=0
 )
 
 :: Check if pm2-windows-service is available
 echo Checking for pm2-windows-service...
+set PM2_SERVICE_INSTALLED=0
 where pm2-service-install >nul 2>&1
 if %errorLevel% equ 0 (
     echo ✅ pm2-windows-service already installed
     set PM2_SERVICE_INSTALLED=1
 ) else (
     echo pm2-windows-service not found, will install...
-    set PM2_SERVICE_INSTALLED=0
 )
 
 echo.
 echo Installation status:
-echo   PM2: !PM2_INSTALLED!
-echo   pm2-windows-service: !PM2_SERVICE_INSTALLED!
+echo   PM2: %PM2_INSTALLED%
+echo   pm2-windows-service: %PM2_SERVICE_INSTALLED%
 echo.
 
 :: Install PM2 if needed
-if !PM2_INSTALLED! equ 0 (
+if %PM2_INSTALLED% equ 0 (
     echo Installing PM2 globally (this may take a few minutes)...
     call npm install -g pm2
-    if !errorLevel! neq 0 (
+    if %errorLevel% neq 0 (
         echo ❌ ERROR: Failed to install PM2
         echo.
         echo Trying with cache clean...
         call npm cache clean --force
         call npm install -g pm2
-        if !errorLevel! neq 0 (
+        if %errorLevel% neq 0 (
             echo ❌ ERROR: PM2 installation failed completely
             pause
             exit /b 1
@@ -126,17 +125,17 @@ if !PM2_INSTALLED! equ 0 (
 )
 
 :: Install pm2-windows-service if needed
-if !PM2_SERVICE_INSTALLED! equ 0 (
+if %PM2_SERVICE_INSTALLED% equ 0 (
     echo.
     echo Installing pm2-windows-service...
     call npm install -g pm2-windows-service
-    if !errorLevel! neq 0 (
+    if %errorLevel% neq 0 (
         echo ❌ ERROR: Failed to install pm2-windows-service
         echo.
         echo Trying with cache clean...
         call npm cache clean --force
         call npm install -g pm2-windows-service
-        if !errorLevel! neq 0 (
+        if %errorLevel% neq 0 (
             echo ❌ ERROR: pm2-windows-service installation failed completely
             pause
             exit /b 1
