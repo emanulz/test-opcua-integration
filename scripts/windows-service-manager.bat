@@ -3,11 +3,14 @@ setlocal
 
 :: OPC UA Integration - Windows Service Manager
 :: This script provides easy management of the PM2 service and application
+:: ✅ This script can be run from ANY directory (uses PM2 app names, not file paths)
 
 echo.
 echo ================================================
 echo   OPC UA Integration - Service Manager
 echo ================================================
+echo.
+echo ℹ️  This manager can be run from any directory
 echo.
 
 :menu

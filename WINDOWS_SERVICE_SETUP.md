@@ -2,6 +2,20 @@
 
 This guide will help you set up the OPC UA Integration application as a Windows service using PM2, so it starts automatically when Windows boots.
 
+## Directory Requirements ⚠️
+
+### Installation Script
+
+- **`scripts/install-windows-service.bat`** - **MUST** be run from the **application root directory**
+  - Needs access to `package.json`, `ecosystem.config.js`, and source files
+  - Creates `logs/` and `data/` directories in current location
+
+### Management Script  
+
+- **`scripts/windows-service-manager.bat`** - **Can be run from ANY directory**
+  - Uses PM2 application names (not file paths)
+  - Works from anywhere on your system
+
 ## Prerequisites
 
 - **Node.js**: Version 22.14.0 or higher
@@ -20,21 +34,26 @@ npm install -g pm2-windows-service
 
 ## Step 2: Prepare Your Application
 
-### 2.1 Build the Application
+### 2.1 Navigate to Application Directory
 
 ```cmd
 cd C:\path\to\your\opcua-integration
+```
+
+### 2.2 Build the Application
+
+```cmd
 yarn build
 ```
 
-### 2.2 Create Required Directories
+### 2.3 Create Required Directories
 
 ```cmd
 mkdir logs
 mkdir data
 ```
 
-### 2.3 Configure Environment Variables
+### 2.4 Configure Environment Variables
 
 Ensure your `.env` file is properly configured with all required variables:
 
@@ -96,7 +115,7 @@ SERVICE_NAME: PM2
 
 ## Step 4: Configure and Start Your Application
 
-### 4.1 Navigate to Your Application Directory
+### 4.1 Navigate to Your Application Directory (if not already there)
 
 ```cmd
 cd C:\path\to\your\opcua-integration
@@ -219,7 +238,7 @@ or
 pm2-service-stop
 ```
 
-#### Restart PM2 Service
+#### Restart PM2 Service (if needed)
 
 ```cmd
 sc stop PM2
@@ -264,6 +283,21 @@ pm2 monit
 pm2 info opcua-integration
 ```
 
+## Easy Management Options
+
+### Option 1: Use the Service Manager (Recommended)
+
+Run the interactive service manager from **any directory**:
+
+```cmd
+# Can be run from anywhere
+scripts\windows-service-manager.bat
+```
+
+### Option 2: Use Command Line
+
+Use the individual PM2 commands shown above (can be run from any directory)
+
 ## Troubleshooting
 
 ### Problem: Application Not Starting on Boot
@@ -286,7 +320,7 @@ pm2 list
 pm2 logs
 ```
 
-#### Restart PM2 Service (if needed)
+#### Restart PM2 Service (if needed 2)
 
 ```cmd
 sc stop PM2
@@ -439,6 +473,13 @@ The specified service does not exist as an installed service.
 | **Start Service** | `sc start PM2` |
 | **Stop Service** | `sc stop PM2` |
 | **Service Status** | `sc query PM2` |
+
+### Directory Requirements
+
+| Script | Directory Requirement |
+|--------|-----------------------|
+| **install-windows-service.bat** | **Must run from app root** |
+| **windows-service-manager.bat** | **Can run from anywhere** |
 
 ## Support
 
