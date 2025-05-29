@@ -155,18 +155,28 @@ echo.
 echo Step 4: Checking environment configuration...
 echo =============================================
 if not exist ".env" (
-    echo ⚠️  WARNING: .env file not found!
+    echo WARNING: .env file not found!
     echo Please create a .env file with your configuration before starting the service.
     echo You can use the example from the README.md file.
     echo.
-    set /p continue="Do you want to continue anyway? (y/n): "
-    if /i "%continue%" neq "y" (
-        echo Installation cancelled.
-        pause
-        exit /b 1
-    )
+    echo Do you want to continue anyway?
+    echo   1 = Yes, continue without .env file
+    echo   2 = No, cancel installation
+    echo.
+    set /p choice="Enter your choice (1 or 2): "
+    if "%choice%"=="1" goto continue_install
+    if "%choice%"=="2" goto cancel_install
+    echo Invalid choice, cancelling installation.
+    
+    :cancel_install
+    echo Installation cancelled.
+    pause
+    exit /b 1
+    
+    :continue_install
+    echo Continuing without .env file...
 ) else (
-    echo ✅ .env file found - OK
+    echo .env file found - OK
 )
 echo.
 
