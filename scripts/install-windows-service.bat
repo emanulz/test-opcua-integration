@@ -164,17 +164,24 @@ if not exist ".env" (
     echo   2 = No, cancel installation
     echo.
     set /p choice="Enter your choice (1 or 2): "
-    if "%choice%"=="1" goto continue_install
-    if "%choice%"=="2" goto cancel_install
-    echo Invalid choice, cancelling installation.
+    echo You entered: [%choice%]
     
-    :cancel_install
-    echo Installation cancelled.
+    if "%choice%"=="1" (
+        echo Continuing without .env file...
+        goto continue_install
+    )
+    if "%choice%"=="2" (
+        echo Installation cancelled by user.
+        pause
+        exit /b 1
+    )
+    
+    echo Invalid choice "%choice%", cancelling installation.
     pause
     exit /b 1
     
     :continue_install
-    echo Continuing without .env file...
+    echo Proceeding with installation...
 ) else (
     echo .env file found - OK
 )
