@@ -104,7 +104,7 @@ You have two options for configuring environment variables:
 
 ##### Option A: Using a .env file (Recommended)
 
-1. Create a `.env` file in the project root directory:
+1; Create a `.env` file in the project root directory:
 
 ```bash
 # Copy the example file
@@ -114,9 +114,9 @@ cp .env.example .env
 nano .env
 ```
 
-2. Your `.env` file should contain all necessary configuration:
+2; Your `.env` file should contain all necessary configuration:
 
-```
+```typescript
 # OPC UA Server
 OPC_ENDPOINT=opc.tcp://your-opcua-server:4840
 STATE_NODE_ID=ns=2;s=StateMachineNode
