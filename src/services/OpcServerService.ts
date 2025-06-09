@@ -25,6 +25,13 @@ export class OpcServerService implements IOpcServerService {
   private isConnected = false;
   private currentStateCallback: ((newState: string) => void) | null = null;
 
+  /**
+   * Check if the OPC server is currently connected
+   */
+  isOpcServerConnected(): boolean {
+    return this.isConnected;
+  }
+
   async connect(): Promise<void> {
     try {
       console.log('Connecting to OPC server at', envConfig.OPC_ENDPOINT);
@@ -197,15 +204,15 @@ export class OpcServerService implements IOpcServerService {
   }
 
   private async reconnect(): Promise<void> {
-    console.log('Attempting to reconnect to OPC UA server...');
+    console.log(`Attempting to reconnect to OPC UA server at ${envConfig.OPC_ENDPOINT}...`);
     try {
       await this.connect();
       if (this.currentStateCallback) {
         await this.initializeSubscription(this.currentStateCallback);
       }
-      console.log('Reconnected successfully!');
+      console.log('✅ OPC UA server reconnected successfully! State monitoring is active.');
     } catch (error) {
-      console.error('Reconnection attempt failed:', error);
+      console.error(`❌ Reconnection attempt failed. Will retry in ${this.reconnectDelay / 1000} seconds...`);
       setTimeout(() => this.reconnect(), this.reconnectDelay);
     }
   }

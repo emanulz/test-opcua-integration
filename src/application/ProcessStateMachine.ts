@@ -24,6 +24,15 @@ export class ProcessStateMachine {
   }
 
   /**
+   * Initializes the process without requiring immediate connection.
+   * Sets up the state change subscription which will be activated once OPC server connects.
+   */
+  initializeWithRetry(): void {
+    console.log('Setting up state change subscription for when OPC server becomes available...');
+    this.opcServer.subscribeToStateChanges((newState) => this.handleStateChange(newState));
+  }
+
+  /**
    * Called whenever the state node changes.
    * If the state matches START_STATE_VALUE, we read the itemId, fetch from API, write to the result node,
    * and then update the state to DONE_STATE_VALUE.

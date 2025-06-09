@@ -10,6 +10,11 @@ export interface IOpcServerService {
   connect(): Promise<void>;
 
   /**
+   * Check if the OPC server is currently connected.
+   */
+  isOpcServerConnected(): boolean;
+
+  /**
    * Subscribe to changes in a "state" node. When triggered, it calls the callback with the new state.
    * @param callback - function to handle changes in the state node
    */
