@@ -238,6 +238,7 @@ if exist "..\ecosystem.config.js" (
 
 :: Check common locations
 for %%d in (
+    "C:\ArenaIntegration\test-opcua-integration"
     "C:\opcua-integration"
     "C:\app"
     "C:\projects\opcua-integration"
